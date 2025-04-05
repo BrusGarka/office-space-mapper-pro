@@ -13,6 +13,7 @@ const MapCanvas: React.FC = () => {
   const plant = useAppSelector((state) => state.plant);
   const areas = useAppSelector((state) => state.areas.areas);
   const selectedAreaId = useAppSelector((state) => state.areas.selectedAreaId);
+  const bookings = useAppSelector((state) => state.bookings.bookings);
   
   const mapViewportRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -54,12 +55,22 @@ const MapCanvas: React.FC = () => {
   
   // Handle area selection
   const handleAreaClick = (areaId: string) => {
-    dispatch(setSelectedAreaId(areaId));
+    // Toggle selection
+    if (selectedAreaId === areaId) {
+      dispatch(setSelectedAreaId(null));
+    } else {
+      dispatch(setSelectedAreaId(areaId));
+    }
   };
   
   // Handle background click to deselect
   const handleBackgroundClick = () => {
     dispatch(setSelectedAreaId(null));
+  };
+  
+  // Check if area is reserved
+  const isAreaReserved = (areaId: string) => {
+    return bookings.some(booking => booking.areaId === areaId);
   };
   
   useEffect(() => {
@@ -125,14 +136,19 @@ const MapCanvas: React.FC = () => {
         )}
         
         {/* Area shapes */}
-        {areas.map((area) => (
-          <AreaShape
-            key={area.id}
-            area={area}
-            isSelected={area.id === selectedAreaId}
-            onClick={() => handleAreaClick(area.id)}
-          />
-        ))}
+        {areas.map((area) => {
+          const reserved = isAreaReserved(area.id);
+          const areaColor = reserved ? 'rgba(239, 68, 68, 0.4)' : 'rgba(34, 197, 94, 0.4)';
+          
+          return (
+            <AreaShape
+              key={area.id}
+              area={{...area, color: areaColor}}
+              isSelected={area.id === selectedAreaId}
+              onClick={() => handleAreaClick(area.id)}
+            />
+          );
+        })}
       </div>
     </div>
   );

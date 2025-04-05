@@ -6,10 +6,12 @@ import { saveToLocalStorage, loadFromLocalStorage } from '@/utils/localStorage';
 import NavBar from '@/components/common/NavBar';
 import MapCanvas from '@/components/MapViewer/MapCanvas';
 import InfoSidebar from '@/components/MapViewer/InfoSidebar';
+import { useNavigate } from 'react-router-dom';
 
 const MapPage: React.FC = () => {
   const dispatch = useAppDispatch();
   const state = useAppSelector(state => state);
+  const navigate = useNavigate();
   
   useEffect(() => {
     // Load data from localStorage on initial render

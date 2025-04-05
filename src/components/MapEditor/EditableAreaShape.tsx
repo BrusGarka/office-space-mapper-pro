@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Area } from '@/store/slices/areasSlice';
 
@@ -29,15 +30,16 @@ const EditableAreaShape: React.FC<AreaShapeProps> = ({
   const handleMouseDown = (e: React.MouseEvent) => {
     e.stopPropagation();
     
+    // Handle click selection separately
     if (!isDragging && !isResizing) {
       onClick();
     }
     
-    if (!isEditable) {
+    if (!isEditable || !isSelected) {
       return;
     }
     
-    if (isSelected && e.button === 0) {
+    if (e.button === 0) {
       setDragStart({ x: e.clientX, y: e.clientY });
       setOffsetX(e.clientX - area.position.x);
       setOffsetY(e.clientY - area.position.y);
@@ -136,6 +138,10 @@ const EditableAreaShape: React.FC<AreaShapeProps> = ({
         color: 'rgba(0,0,0,0.7)',
         textShadow: '0px 0px 2px rgba(255,255,255,0.8)',
         zIndex: isSelected ? 2 : 1
+      }}
+      onClick={(e) => {
+        e.stopPropagation();
+        onClick();
       }}
       onMouseDown={handleMouseDown}
       onMouseMove={handleMouseMove}

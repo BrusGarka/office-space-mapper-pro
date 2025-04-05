@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Settings, Save, Map, LogOut } from 'lucide-react';
+import { Settings, Save, Map, LogOut, Home } from 'lucide-react';
 import { useAppSelector } from '@/hooks/useAppSelector';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/components/ui/use-toast';
@@ -44,7 +44,7 @@ const NavBar: React.FC = () => {
               <span>Salvar</span>
             </Button>
             
-            <Link to="/">
+            <Link to="/map">
               <Button variant="outline" className="flex items-center space-x-2">
                 <Map size={16} />
                 <span>Mapa</span>
@@ -58,12 +58,21 @@ const NavBar: React.FC = () => {
             </Link>
           </>
         ) : (
-          <Link to="/editor">
-            <Button variant="outline" className="flex items-center space-x-2">
-              <Settings size={16} />
-              <span>Editor</span>
-            </Button>
-          </Link>
+          <>
+            <Link to="/editor">
+              <Button variant="outline" className="flex items-center space-x-2">
+                <Settings size={16} />
+                <span>Editor</span>
+              </Button>
+            </Link>
+            
+            <Link to="/">
+              <Button variant="outline" className="flex items-center space-x-2">
+                <Home size={16} />
+                <span>Início</span>
+              </Button>
+            </Link>
+          </>
         )}
       </div>
     </nav>

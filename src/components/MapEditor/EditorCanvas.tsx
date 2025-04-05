@@ -120,14 +120,19 @@ const EditorCanvas: React.FC<EditorCanvasProps> = ({ currentTool }) => {
   
   // Handle area selection
   const handleAreaClick = (areaId: string) => {
-    if (currentTool === 'select') {
+    // Toggle selection
+    if (selectedAreaId === areaId && currentTool === 'select') {
+      dispatch(setSelectedAreaId(null));
+    } else if (currentTool === 'select') {
       dispatch(setSelectedAreaId(areaId));
     }
   };
   
   // Handle background click to deselect
   const handleBackgroundClick = () => {
-    dispatch(setSelectedAreaId(null));
+    if (currentTool === 'select') {
+      dispatch(setSelectedAreaId(null));
+    }
   };
   
   // Handle area movement
