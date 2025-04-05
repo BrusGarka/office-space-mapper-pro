@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Trash, MapPin, Edit } from 'lucide-react';
+import { Trash, Edit } from 'lucide-react';
 
 const EditorSidebar: React.FC = () => {
   const dispatch = useAppDispatch();
@@ -68,8 +68,8 @@ const EditorSidebar: React.FC = () => {
   };
 
   return (
-    <div className="w-80 h-full border-l bg-white p-4">
-      <h2 className="text-xl font-bold mb-6">Ferramentas</h2>
+    <div className="space-y-6">
+      <h2 className="text-xl font-bold mb-6">Espaços</h2>
       
       <div className="grid grid-cols-2 gap-2 mb-8">
         <Button 
@@ -78,20 +78,15 @@ const EditorSidebar: React.FC = () => {
         >
           Selecionar
         </Button>
-        <Button 
-          variant={currentTool === 'pan' ? 'default' : 'outline'} 
-          onClick={() => handleToolSelect('pan')}
-        >
-          Mover Mapa
-        </Button>
+        
         <Button 
           variant={currentTool === 'room' ? 'default' : 'outline'} 
           onClick={() => handleToolSelect('room')} 
           className="flex items-center space-x-2"
         >
-          <MapPin size={16} />
           <span>Nova Sala</span>
         </Button>
+        
         <Button 
           variant={currentTool === 'desk' ? 'default' : 'outline'} 
           onClick={() => handleToolSelect('desk')} 

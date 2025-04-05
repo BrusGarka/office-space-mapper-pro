@@ -23,8 +23,12 @@ const EditorCanvas: React.FC<EditorCanvasProps> = ({ currentTool }) => {
   const mapViewportRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
-  const [isDrawing, setIsDrawing] = useState(false);
-  const [drawStart, setDrawStart] = useState({ x: 0, y: 0 });
+  
+  // Constants for predefined shapes
+  const DESK_SIZE = { width: 40, height: 40 }; // Circle for desk
+  const ROOM_SIZE = { width: 120, height: 120 }; // Square for room (3x larger than desk)
+  const DESK_COLOR = 'rgba(168, 85, 247, 0.4)'; // Purple translucent for desk
+  const ROOM_COLOR = 'rgba(168, 85, 247, 0.4)'; // Purple translucent for room
   
   // Handle map panning
   const handleMouseDown = (e: React.MouseEvent) => {
@@ -42,12 +46,31 @@ const EditorCanvas: React.FC<EditorCanvasProps> = ({ currentTool }) => {
       const rect = mapViewportRef.current?.getBoundingClientRect();
       if (!rect) return;
       
-      // Calculate start position in the map coordinates
+      // Calculate position in the map coordinates
       const x = (e.clientX - rect.left - plant.position.x) / plant.scale;
       const y = (e.clientY - rect.top - plant.position.y) / plant.scale;
       
-      setIsDrawing(true);
-      setDrawStart({ x, y });
+      // Create area with predefined size based on type
+      const isRoom = currentTool === 'room';
+      const size = isRoom ? ROOM_SIZE : DESK_SIZE;
+      const color = isRoom ? ROOM_COLOR : DESK_COLOR;
+      const capacity = isRoom ? 8 : 1;
+      
+      const newArea: Area = {
+        id: generateId('area-'),
+        type: isRoom ? 'room' : 'desk',
+        name: isRoom ? 'Nova Sala' : 'Nova Mesa',
+        capacity,
+        position: {
+          x: x - size.width / 2,  // Center the shape where the user clicked
+          y: y - size.height / 2
+        },
+        size,
+        color
+      };
+      
+      dispatch(addArea(newArea));
+      dispatch(setSelectedAreaId(newArea.id));
     }
   };
   
@@ -57,55 +80,12 @@ const EditorCanvas: React.FC<EditorCanvasProps> = ({ currentTool }) => {
         x: e.clientX - dragStart.x,
         y: e.clientY - dragStart.y
       }));
-      return;
-    }
-    
-    if (isDrawing) {
-      // This is just for visual feedback - actual area creation happens on mouseup
     }
   };
   
-  const handleMouseUp = (e: React.MouseEvent) => {
+  const handleMouseUp = () => {
     if (isDragging) {
       setIsDragging(false);
-      return;
-    }
-    
-    if (isDrawing && (currentTool === 'room' || currentTool === 'desk')) {
-      // Get canvas coordinates
-      const rect = mapViewportRef.current?.getBoundingClientRect();
-      if (!rect) return;
-      
-      // Calculate end position in the map coordinates
-      const endX = (e.clientX - rect.left - plant.position.x) / plant.scale;
-      const endY = (e.clientY - rect.top - plant.position.y) / plant.scale;
-      
-      // Calculate width and height
-      const width = Math.abs(endX - drawStart.x);
-      const height = Math.abs(endY - drawStart.y);
-      
-      // Only create area if it has some size
-      if (width > 5 && height > 5) {
-        const newArea: Area = {
-          id: generateId('area-'),
-          type: currentTool === 'room' ? 'room' : 'desk',
-          name: currentTool === 'room' ? 'Nova Sala' : 'Nova Mesa',
-          capacity: currentTool === 'room' ? 8 : 1,
-          position: {
-            x: Math.min(drawStart.x, endX),
-            y: Math.min(drawStart.y, endY)
-          },
-          size: { width, height },
-          color: currentTool === 'room' 
-            ? 'rgba(0, 128, 255, 0.4)' 
-            : 'rgba(0, 200, 100, 0.4)'
-        };
-        
-        dispatch(addArea(newArea));
-        dispatch(setSelectedAreaId(newArea.id));
-      }
-      
-      setIsDrawing(false);
     }
   };
   
@@ -120,10 +100,7 @@ const EditorCanvas: React.FC<EditorCanvasProps> = ({ currentTool }) => {
   
   // Handle area selection
   const handleAreaClick = (areaId: string) => {
-    // Toggle selection
-    if (selectedAreaId === areaId && currentTool === 'select') {
-      dispatch(setSelectedAreaId(null));
-    } else if (currentTool === 'select') {
+    if (currentTool === 'select') {
       dispatch(setSelectedAreaId(areaId));
     }
   };
@@ -157,13 +134,6 @@ const EditorCanvas: React.FC<EditorCanvasProps> = ({ currentTool }) => {
         </Button>
       </div>
       
-      {/* Drawing indicator */}
-      {isDrawing && (
-        <div className="absolute top-4 left-4 bg-purple-600 text-white px-3 py-1 rounded-md z-10">
-          Desenhando...
-        </div>
-      )}
-      
       {/* Map viewport with transform */}
       <div
         ref={mapViewportRef}
@@ -184,7 +154,6 @@ const EditorCanvas: React.FC<EditorCanvasProps> = ({ currentTool }) => {
         onMouseUp={handleMouseUp}
         onMouseLeave={() => {
           setIsDragging(false);
-          setIsDrawing(false);
         }}
         onClick={handleBackgroundClick}
       >
@@ -215,19 +184,6 @@ const EditorCanvas: React.FC<EditorCanvasProps> = ({ currentTool }) => {
             isEditable={currentTool === 'select'}
           />
         ))}
-        
-        {/* Drawing preview */}
-        {isDrawing && (
-          <div
-            className="absolute border-2 border-dashed border-purple-600 bg-purple-200 bg-opacity-30"
-            style={{
-              left: drawStart.x,
-              top: drawStart.y,
-              width: '0',
-              height: '0'
-            }}
-          />
-        )}
       </div>
     </div>
   );
