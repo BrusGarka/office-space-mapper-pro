@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useAppSelector } from '@/hooks/useAppSelector';
 import { useAppDispatch } from '@/hooks/useAppDispatch';
 import { Area, removeArea, updateArea } from '@/store/slices/areasSlice';
@@ -15,13 +15,23 @@ const EditorSidebar: React.FC = () => {
   const selectedAreaId = useAppSelector(state => state.areas.selectedAreaId);
   const areas = useAppSelector(state => state.areas.areas);
   const currentTool = useAppSelector(state => state.ui.currentTool);
+  const [lastTool, setLastTool] = useState<string | null>(null);
 
   // Get selected area if any
   const selectedArea = areas.find(area => area.id === selectedAreaId);
 
   // Handle tool selection
   const handleToolSelect = (tool: string) => {
+    setLastTool(currentTool);
     dispatch(setCurrentTool(tool as any));
+    
+    if (tool === 'room' || tool === 'desk') {
+      // Auto-create an item in the center of the screen
+      setTimeout(() => {
+        // Automatically revert to select tool after creating an item
+        dispatch(setCurrentTool('select'));
+      }, 100);
+    }
   };
 
   // Handle area name change
@@ -52,15 +62,6 @@ const EditorSidebar: React.FC = () => {
     }));
   };
 
-  // Handle area color change
-  const handleColorChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!selectedArea) return;
-    dispatch(updateArea({
-      ...selectedArea,
-      color: e.target.value
-    }));
-  };
-
   // Handle area deletion
   const handleDeleteArea = () => {
     if (!selectedArea) return;
@@ -72,13 +73,6 @@ const EditorSidebar: React.FC = () => {
       <h2 className="text-xl font-bold mb-6">Espaços</h2>
       
       <div className="grid grid-cols-2 gap-2 mb-8">
-        <Button 
-          variant={currentTool === 'select' ? 'default' : 'outline'} 
-          onClick={() => handleToolSelect('select')}
-        >
-          Selecionar
-        </Button>
-        
         <Button 
           variant={currentTool === 'room' ? 'default' : 'outline'} 
           onClick={() => handleToolSelect('room')} 
@@ -123,17 +117,6 @@ const EditorSidebar: React.FC = () => {
             <div className="space-y-2">
               <Label htmlFor="capacity">Capacidade</Label>
               <Input id="capacity" type="number" min="1" value={selectedArea.capacity} onChange={handleCapacityChange} />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="color">Cor</Label>
-              <div className="flex space-x-2">
-                <div 
-                  className="w-10 h-10 rounded" 
-                  style={{ backgroundColor: selectedArea.color }}
-                />
-                <Input id="color" type="text" value={selectedArea.color} onChange={handleColorChange} className="flex-grow" />
-              </div>
             </div>
             
             <div className="pt-4">

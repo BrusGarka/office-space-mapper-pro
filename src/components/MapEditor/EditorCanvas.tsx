@@ -1,5 +1,5 @@
 
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { useAppSelector } from '@/hooks/useAppSelector';
 import { useAppDispatch } from '@/hooks/useAppDispatch';
 import { Area, addArea, setSelectedAreaId, updateAreaPosition, updateAreaSize } from '@/store/slices/areasSlice';
@@ -23,6 +23,7 @@ const EditorCanvas: React.FC<EditorCanvasProps> = ({ currentTool }) => {
   const mapViewportRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const [prevTool, setPrevTool] = useState<Tool>(currentTool);
   
   // Constants for predefined shapes
   const DESK_SIZE = { width: 40, height: 40 }; // Circle for desk
@@ -30,25 +31,20 @@ const EditorCanvas: React.FC<EditorCanvasProps> = ({ currentTool }) => {
   const DESK_COLOR = 'rgba(168, 85, 247, 0.4)'; // Purple translucent for desk
   const ROOM_COLOR = 'rgba(168, 85, 247, 0.4)'; // Purple translucent for room
   
-  // Handle map panning
-  const handleMouseDown = (e: React.MouseEvent) => {
-    if (currentTool === 'pan' || e.button === 1) {
-      setIsDragging(true);
-      setDragStart({
-        x: e.clientX - plant.position.x,
-        y: e.clientY - plant.position.y
-      });
-      return;
-    }
-    
-    if ((currentTool === 'room' || currentTool === 'desk') && e.button === 0) {
-      // Get canvas coordinates
+  // Auto-create shape when tool changes to room or desk
+  useEffect(() => {
+    if ((currentTool === 'room' || currentTool === 'desk') && prevTool !== currentTool) {
+      // Create area at center of viewport
       const rect = mapViewportRef.current?.getBoundingClientRect();
       if (!rect) return;
       
-      // Calculate position in the map coordinates
-      const x = (e.clientX - rect.left - plant.position.x) / plant.scale;
-      const y = (e.clientY - rect.top - plant.position.y) / plant.scale;
+      // Calculate center of the viewport in map coordinates
+      const viewportCenterX = rect.width / 2;
+      const viewportCenterY = rect.height / 2;
+      
+      // Convert to map coordinates
+      const x = (viewportCenterX - plant.position.x) / plant.scale;
+      const y = (viewportCenterY - plant.position.y) / plant.scale;
       
       // Create area with predefined size based on type
       const isRoom = currentTool === 'room';
@@ -71,6 +67,25 @@ const EditorCanvas: React.FC<EditorCanvasProps> = ({ currentTool }) => {
       
       dispatch(addArea(newArea));
       dispatch(setSelectedAreaId(newArea.id));
+    }
+    
+    setPrevTool(currentTool);
+  }, [currentTool, prevTool, dispatch, plant.position.x, plant.position.y, plant.scale]);
+  
+  // Handle map panning
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (currentTool === 'pan' || e.button === 1) {
+      setIsDragging(true);
+      setDragStart({
+        x: e.clientX - plant.position.x,
+        y: e.clientY - plant.position.y
+      });
+      return;
+    }
+    
+    if ((currentTool === 'room' || currentTool === 'desk') && e.button === 0) {
+      // We're now auto-creating the shapes when the tool is selected
+      // So we don't need to handle the mouse down event for creating shapes
     }
   };
   
@@ -122,6 +137,14 @@ const EditorCanvas: React.FC<EditorCanvasProps> = ({ currentTool }) => {
     dispatch(updateAreaSize({ id, size: newSize }));
   };
   
+  // Determine cursor style based on current tool
+  const getCursorStyle = () => {
+    if (isDragging) return 'grabbing';
+    if (currentTool === 'pan') return 'grab';
+    if (currentTool === 'select') return 'default';
+    return 'crosshair';
+  };
+  
   return (
     <div className="map-container w-full h-full relative overflow-hidden bg-gray-50">
       {/* Zoom controls */}
@@ -141,13 +164,7 @@ const EditorCanvas: React.FC<EditorCanvasProps> = ({ currentTool }) => {
         style={{
           transform: `translate(${plant.position.x}px, ${plant.position.y}px) scale(${plant.scale})`,
           transformOrigin: '0 0',
-          cursor: isDragging 
-            ? 'grabbing' 
-            : currentTool === 'pan' 
-              ? 'grab' 
-              : currentTool === 'select' 
-                ? 'default' 
-                : 'crosshair'
+          cursor: getCursorStyle()
         }}
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
@@ -182,6 +199,7 @@ const EditorCanvas: React.FC<EditorCanvasProps> = ({ currentTool }) => {
             onMove={(newPosition) => handleAreaMove(area.id, newPosition)}
             onResize={(newSize) => handleAreaResize(area.id, newSize)}
             isEditable={currentTool === 'select'}
+            isCircle={area.type === 'desk'}
           />
         ))}
       </div>

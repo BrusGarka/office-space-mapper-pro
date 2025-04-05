@@ -8,7 +8,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
-const ImageUploader: React.FC = () => {
+interface ImageUploaderProps {
+  onComplete?: () => void;
+}
+
+const ImageUploader: React.FC<ImageUploaderProps> = ({ onComplete }) => {
   const dispatch = useAppDispatch();
   const plant = useAppSelector(state => state.plant);
   const [isLoading, setIsLoading] = useState(false);
@@ -37,6 +41,11 @@ const ImageUploader: React.FC = () => {
       // Reset file input
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
+      }
+      
+      // Switch to spaces tab after upload
+      if (onComplete) {
+        onComplete();
       }
     } catch (error) {
       console.error('Error uploading image:', error);

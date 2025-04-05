@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useAppSelector } from '@/hooks/useAppSelector';
 import { useAppDispatch } from '@/hooks/useAppDispatch';
 import { setCurrentTool } from '@/store/slices/uiSlice';
@@ -13,9 +13,18 @@ import { Button } from '@/components/ui/button';
 const EditorPage: React.FC = () => {
   const dispatch = useAppDispatch();
   const currentTool = useAppSelector(state => state.ui.currentTool);
+  const plant = useAppSelector(state => state.plant);
+  const [activeTab, setActiveTab] = useState('config');
   
-  const handleToolSelect = (tool: string) => {
-    dispatch(setCurrentTool(tool as any));
+  // Set the current tool based on active tab
+  const handleTabChange = (value: string) => {
+    setActiveTab(value);
+    
+    if (value === 'config') {
+      dispatch(setCurrentTool('pan'));
+    } else if (value === 'tools') {
+      dispatch(setCurrentTool('select'));
+    }
   };
   
   return (
@@ -26,24 +35,14 @@ const EditorPage: React.FC = () => {
           <EditorCanvas currentTool={currentTool} />
         </div>
         <div className="w-80 border-l bg-white">
-          <Tabs defaultValue="config" className="w-full">
+          <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
             <TabsList className="grid grid-cols-2 w-full">
               <TabsTrigger value="config">Upload</TabsTrigger>
               <TabsTrigger value="tools">Espaços</TabsTrigger>
             </TabsList>
             <TabsContent value="config" className="h-full overflow-y-auto">
               <div className="p-4">
-                <ImageUploader />
-                
-                <div className="mt-4">
-                  <Button 
-                    variant={currentTool === 'pan' ? 'default' : 'outline'} 
-                    onClick={() => handleToolSelect('pan')}
-                    className="w-full"
-                  >
-                    Mover Mapa
-                  </Button>
-                </div>
+                <ImageUploader onComplete={() => setActiveTab('tools')} />
                 
                 {/* Additional config options could go here */}
                 <div className="mt-6">
