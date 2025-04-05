@@ -5,7 +5,8 @@ import areasReducer from './slices/areasSlice';
 import bookingsReducer from './slices/bookingsSlice';
 import uiReducer from './slices/uiSlice';
 
-export const store = configureStore({
+// Create the store
+const store = configureStore({
   reducer: {
     plant: plantReducer,
     areas: areasReducer,
@@ -14,5 +15,8 @@ export const store = configureStore({
   },
 });
 
+// Export types for TypeScript
 export type RootState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;
+
+export { store };
