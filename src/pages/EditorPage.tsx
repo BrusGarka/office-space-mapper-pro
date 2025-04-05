@@ -26,10 +26,10 @@ const EditorPage: React.FC = () => {
               <TabsTrigger value="tools">Ferramentas</TabsTrigger>
               <TabsTrigger value="config">Configuração</TabsTrigger>
             </TabsList>
-            <TabsContent value="tools" className="p-4">
+            <TabsContent value="tools" className="h-full overflow-y-auto">
               <EditorSidebar />
             </TabsContent>
-            <TabsContent value="config" className="p-4">
+            <TabsContent value="config" className="p-4 h-full overflow-y-auto">
               <ImageUploader />
               
               {/* Additional config options could go here */}

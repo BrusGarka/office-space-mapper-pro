@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Area } from '@/store/slices/areasSlice';
 
@@ -30,16 +29,20 @@ const EditableAreaShape: React.FC<AreaShapeProps> = ({
   const handleMouseDown = (e: React.MouseEvent) => {
     e.stopPropagation();
     
-    if (!isEditable) {
+    if (!isDragging && !isResizing) {
       onClick();
+    }
+    
+    if (!isEditable) {
       return;
     }
     
-    setDragStart({ x: e.clientX, y: e.clientY });
-    setOffsetX(e.clientX - area.position.x);
-    setOffsetY(e.clientY - area.position.y);
-    setIsDragging(true);
-    onClick();
+    if (isSelected && e.button === 0) {
+      setDragStart({ x: e.clientX, y: e.clientY });
+      setOffsetX(e.clientX - area.position.x);
+      setOffsetY(e.clientY - area.position.y);
+      setIsDragging(true);
+    }
   };
   
   const handleResizeStart = (e: React.MouseEvent) => {
@@ -79,7 +82,6 @@ const EditableAreaShape: React.FC<AreaShapeProps> = ({
   
   React.useEffect(() => {
     if (isDragging || isResizing) {
-      // Add event listeners to window to handle mouse movements outside the component
       window.addEventListener('mousemove', handleWindowMouseMove);
       window.addEventListener('mouseup', handleWindowMouseUp);
     }
@@ -142,7 +144,6 @@ const EditableAreaShape: React.FC<AreaShapeProps> = ({
     >
       {area.name}
       
-      {/* Resize handle - only shown when selected and editable */}
       {isSelected && isEditable && (
         <div
           className="absolute bottom-0 right-0 w-4 h-4 bg-black cursor-se-resize"
