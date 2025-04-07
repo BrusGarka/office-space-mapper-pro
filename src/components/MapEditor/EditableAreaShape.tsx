@@ -6,6 +6,7 @@ interface AreaShapeProps {
   area: Area;
   isSelected: boolean;
   isEditable: boolean;
+  isCircle?: boolean; // Added this property
   onClick: () => void;
   onMove: (newPosition: { x: number; y: number }) => void;
   onResize: (newSize: { width: number; height: number }) => void;
@@ -15,6 +16,7 @@ const EditableAreaShape: React.FC<AreaShapeProps> = ({
   area, 
   isSelected, 
   isEditable,
+  isCircle = false, // Default to false if not provided
   onClick, 
   onMove, 
   onResize 
@@ -124,7 +126,7 @@ const EditableAreaShape: React.FC<AreaShapeProps> = ({
         width: area.size.width,
         height: area.size.height,
         backgroundColor: area.color,
-        borderRadius: '4px',
+        borderRadius: isCircle ? '50%' : '4px', // Apply border-radius: 50% if isCircle is true
         position: 'absolute',
         boxSizing: 'border-box',
         border: isSelected ? '2px solid #000' : '1px solid rgba(0,0,0,0.2)',
